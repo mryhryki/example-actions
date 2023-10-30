@@ -1,0 +1,63 @@
+name: Create version up pull request
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        description: Version
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create_version_up_pull_request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check base ref type
+        run: |
+          test "${GITHUB_REF_TYPE}" == "tag"
+      - name: Check base version format
+        run: |
+          echo "GITHUB_REF_NAME: ${GITHUB_REF_NAME}"
+          printf '%s' "${GITHUB_REF_NAME}" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(|-.+)$'
+      - name: Check version format
+        run: |
+          echo "VERSION: ${VERSION}"
+          printf '%s' "${VERSION}" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(|-.+)$'
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+      - name: Create milestone
+        uses: 'WyriHaximus/github-action-create-milestone@v1'
+        with:
+          title: ${{ github.event.inputs.version }}
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.env.GITHUB_REF }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Checkout tag version
+        run: git checkout "${GITHUB_REF_NAME}"
+      - name: Update version
+        run: npm version "${VERSION#v}" --no-git-tag-version
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: 'Hotfix/${{ github.event.inputs.version }}'
+          branch: 'hotfix/${{ github.event.inputs.version }}'
+          delete-branch: true
+          base: 'main'
+          title: 'doc: Hotfix/${{ github.event.inputs.version }}'
+          body: 'Merge ${{ github.event.inputs.version }} into main.'
+          labels: 'Type: Documentation'
+          assignee: '${{ github.actor }}'
+          milestone: '${{ github.event.inputs.version }}'
+          draft: true
