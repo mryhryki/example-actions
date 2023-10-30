@@ -56,7 +56,8 @@ jobs:
           git rev-parse
           git switch -c "hotfix/${NEW_VERSION}"
           git add -A
-          git commit -m 'Hotfix/${NEW_VERSION}'
+          git commit -m "Hotfix/${NEW_VERSION}"
+          git push -u "origin/hotfix/${NEW_VERSION}"
         env:
           NEW_VERSION: ${{ env.NEW_VERSION }}
       - name: Create Pull Request
