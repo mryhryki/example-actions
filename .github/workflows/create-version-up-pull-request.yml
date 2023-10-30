@@ -68,7 +68,7 @@ jobs:
               --title "doc: Hotfix/${NEW_VERSION}" \
               --body "Merge ${NEW_VERSION} into main." \
               --label "Type: Documentation" \
-              --milestone "${NEW_VERSION}" \
+              --milestone "v${NEW_VERSION}" \
               --assignee "${{ github.actor }}" \
               --draft
         env:
