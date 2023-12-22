@@ -1,0 +1,28 @@
+name: "check_stale_issues"
+env:
+  TZ: "Asia/Tokyo"
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 18 20 * *" # 03:00 on JST, 20th day in month
+
+jobs:
+  close-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-stale: 300
+          days-before-close: 30
+          exempt-issue-labels: "IceBox"
+          stale-issue-label: "Stale"
+          stale-pr-label: "Stale"
+          stale-issue-message: "This issue is stale because it has been open for 300 days with no activity."
+          close-issue-message: "This issue was closed because it has been inactive for 30 days since being marked as stale."
+          stale-pr-message: "This Pull Request is stale because it has been open for 300 days with no activity."
+          close-pr-message: "This Pull Request was closed because it has been inactive for 30 days since being marked as stale."
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
